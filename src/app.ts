@@ -79,7 +79,12 @@ app.get('/api/v1/health', (_req: Request, res: Response) => {
 
 // Mount Routes
 import authRoutes from './routes/auth.routes.js';
+import doctorRoutes from './routes/doctor.routes.js';
+import patientRoutes from './routes/patient.routes.js';
+
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/doctors', doctorRoutes);
+app.use('/api/v1/patients', patientRoutes);
 
 // 404 handler for unknown routes
 app.use('/api/*', (_req: Request, _res: Response, next) => {
