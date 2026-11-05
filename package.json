@@ -13,6 +13,7 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "seed": "tsx src/seed/seed.ts",
+    "seed:prod": "node dist/seed/seed.js",
     "format": "prettier --write \"src/**/*.{ts,js,json}\""
   },
   "keywords": [
