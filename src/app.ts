@@ -77,7 +77,10 @@ app.get('/api/v1/health', (_req: Request, res: Response) => {
   });
 });
 
-// Placeholder for mounting route modules in later phases
+// Mount Routes
+import authRoutes from './routes/auth.routes.js';
+app.use('/api/v1/auth', authRoutes);
+
 // 404 handler for unknown routes
 app.use('/api/*', (_req: Request, _res: Response, next) => {
   next(new NotFoundError('The requested API route was not found on this server.'));
