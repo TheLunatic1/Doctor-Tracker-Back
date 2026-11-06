@@ -58,6 +58,16 @@ export const listDoctors = catchAsync(async (req: Request, res: Response) => {
   // Build filter query utilizing indexes
   const filter: FilterQuery<IDoctor> = {};
 
+  // Patient role: default to their assigned attending doctor
+  if (req.user && req.user.role === 'patient' && (query as Record<string, unknown>).scope !== 'all') {
+    const pat = await Patient.findOne({
+      name: { $regex: new RegExp(`^${escapeRegex(req.user.name)}$`, 'i') },
+    });
+    if (pat && pat.doctor) {
+      filter._id = pat.doctor;
+    }
+  }
+
   if (search && search.trim()) {
     const escaped = escapeRegex(search.trim());
     filter.$or = [

@@ -56,6 +56,19 @@ export const listPatients = catchAsync(async (req: Request, res: Response) => {
     filter.name = { $regex: new RegExp(`^${escapeRegex(req.user.name)}$`, 'i') };
   }
 
+  // Doctor role isolation: Doctors by default only see patients assigned to them
+  if (req.user && req.user.role === 'doctor' && (query as Record<string, unknown>).scope !== 'all') {
+    const doc = await Doctor.findOne({
+      $or: [
+        { email: req.user.email },
+        { name: { $regex: new RegExp(`^${escapeRegex(req.user.name)}$`, 'i') } },
+      ],
+    });
+    if (doc) {
+      filter.doctor = doc._id;
+    }
+  }
+
   if (search && search.trim()) {
     const escaped = escapeRegex(search.trim());
     filter.$or = [
@@ -144,6 +157,22 @@ export const getPatient = catchAsync(async (req: Request, res: Response) => {
   // Patients can only view their own record
   if (req.user && req.user.role === 'patient' && patient.name.toLowerCase() !== req.user.name.toLowerCase()) {
     throw new ForbiddenError('You can only access your own patient medical record.');
+  }
+
+  // Doctors can only access their assigned patients
+  if (req.user && req.user.role === 'doctor') {
+    const doc = await Doctor.findOne({
+      $or: [
+        { email: req.user.email },
+        { name: { $regex: new RegExp(`^${escapeRegex(req.user.name)}$`, 'i') } },
+      ],
+    });
+    const assignedDocId = patient.doctor
+      ? String((patient.doctor as { _id?: unknown })._id ?? patient.doctor)
+      : undefined;
+    if (doc && assignedDocId && assignedDocId !== doc._id.toString()) {
+      throw new ForbiddenError('You can only access medical records for patients assigned to your care.');
+    }
   }
 
   return sendSuccess(res, patient, 200);
