@@ -35,6 +35,7 @@ interface DoctorQueryParams {
     | 'status_desc'
     | 'rating_desc'
     | 'rating_asc';
+  scope?: string;
 }
 
 export const listDoctors = catchAsync(async (req: Request, res: Response) => {
@@ -49,6 +50,7 @@ export const listDoctors = catchAsync(async (req: Request, res: Response) => {
     dateFrom,
     dateTo,
     sort = 'newest',
+    scope,
   } = query;
 
   const pageNum = Math.max(1, Number(page) || 1);
@@ -58,8 +60,8 @@ export const listDoctors = catchAsync(async (req: Request, res: Response) => {
   // Build filter query utilizing indexes
   const filter: FilterQuery<IDoctor> = {};
 
-  // Patient role: default to their assigned attending doctor
-  if (req.user && req.user.role === 'patient' && (query as Record<string, unknown>).scope !== 'all') {
+  // Patient role: default to their assigned attending doctor unless browsing all
+  if (req.user && req.user.role === 'patient' && scope !== 'all') {
     const pat = await Patient.findOne({
       name: { $regex: new RegExp(`^${escapeRegex(req.user.name)}$`, 'i') },
     });

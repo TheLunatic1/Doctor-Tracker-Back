@@ -68,6 +68,7 @@ export const doctorQuerySchema = {
       ])
       .optional()
       .default('newest'),
+    scope: z.string().optional(),
   }),
 };
 
