@@ -28,6 +28,7 @@ router
   .route('/:id')
   .get(validate(doctorParamsSchema), doctorController.getDoctor)
   .put(validate(updateDoctorSchema), doctorController.updateDoctor)
+  .patch(validate(updateDoctorSchema), doctorController.updateDoctor)
   .delete(validate(doctorParamsSchema), doctorController.deleteDoctor);
 
 // Nested Doctor Patients routes

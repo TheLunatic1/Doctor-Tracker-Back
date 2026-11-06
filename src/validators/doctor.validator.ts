@@ -27,7 +27,7 @@ export const updateDoctorSchema = {
     phone: z.string().min(5).optional(),
     email: z.string().email().toLowerCase().trim().optional(),
     status: z.enum(['Active', 'Inactive']).optional(),
-    avatar: z.string().optional(),
+    avatar: z.string().optional().or(z.literal('')),
     qualification: z.string().optional(),
     yearsExperience: z.number().int().min(0).max(60).optional(),
     rating: z.number().min(1).max(5).optional(),
