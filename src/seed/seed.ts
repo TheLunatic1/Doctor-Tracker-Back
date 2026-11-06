@@ -97,8 +97,24 @@ export async function runSeed(customUri?: string): Promise<{
   }
 
   // 2. Check existing doctors and patients
+  const forceSeed = process.argv.includes('--force') || process.env.FORCE_SEED === 'true';
   const existingDoctorCount = await Doctor.countDocuments();
-  if (existingDoctorCount >= 40) {
+  if (existingDoctorCount >= 40 && !forceSeed) {
+    // Ensure all existing doctors have local avatar image paths
+    const docs = await Doctor.find({}).sort({ createdAt: 1 });
+    let updatedCount = 0;
+    for (let i = 0; i < docs.length; i++) {
+      const doc = docs[i];
+      const localAvatar = `/images/doctors/doctor-${(i % 16) + 1}.jpg`;
+      if (doc.avatar !== localAvatar) {
+        doc.avatar = localAvatar;
+        await doc.save();
+        updatedCount++;
+      }
+    }
+    if (updatedCount > 0) {
+      console.info(`Updated avatars for ${updatedCount} existing doctors with local images.`);
+    }
     const patientCount = await Patient.countDocuments();
     console.info(`Database already seeded with ${existingDoctorCount} doctors and ${patientCount} patients.`);
     return { admin, doctorCount: existingDoctorCount, patientCount };
@@ -134,7 +150,7 @@ export async function runSeed(customUri?: string): Promise<{
       yearsExperience: Math.floor(Math.random() * 20) + 3,
       rating: parseFloat((4.3 + Math.random() * 0.7).toFixed(1)),
       bio: `Dedicated specialist in ${specialization} at ${hospital} with over ${Math.floor(Math.random() * 15) + 5} years of healthcare practice.`,
-      avatar: `https://images.unsplash.com/photo-${1537368910025 + index}?auto=format&fit=crop&q=80&w=256`,
+      avatar: `/images/doctors/doctor-${(index % 16) + 1}.jpg`,
       createdAt,
       updatedAt: createdAt,
     };

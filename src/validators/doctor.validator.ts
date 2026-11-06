@@ -8,7 +8,7 @@ export const createDoctorSchema = {
     phone: z.string({ required_error: 'Phone number is required' }).min(5),
     email: z.string({ required_error: 'Email is required' }).email('Valid email address is required').toLowerCase().trim(),
     status: z.enum(['Active', 'Inactive']).optional().default('Active'),
-    avatar: z.string().url().optional().or(z.literal('')),
+    avatar: z.string().optional().or(z.literal('')),
     qualification: z.string().optional(),
     yearsExperience: z.number().int().min(0).max(60).optional(),
     rating: z.number().min(1).max(5).optional(),

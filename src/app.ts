@@ -42,6 +42,7 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+app.use(express.static('public'));
 
 if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
