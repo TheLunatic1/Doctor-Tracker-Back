@@ -211,7 +211,7 @@ export async function runSeed(customUri?: string): Promise<{
 }
 
 // Direct execution from CLI
-if (process.argv[1] && process.argv[1].endsWith('seed.ts')) {
+if (process.argv[1] && (process.argv[1].endsWith('seed.ts') || process.argv[1].endsWith('seed.js'))) {
   runSeed()
     .then(() => disconnectDB())
     .catch((err) => {
