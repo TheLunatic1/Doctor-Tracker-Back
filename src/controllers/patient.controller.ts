@@ -17,7 +17,17 @@ interface PatientQueryParams {
   status?: 'Active' | 'Discharged' | 'Critical';
   dateFrom?: string;
   dateTo?: string;
-  sort?: 'name_asc' | 'name_desc' | 'newest' | 'oldest' | 'age_asc' | 'age_desc';
+  sort?:
+    | 'name_asc'
+    | 'name_desc'
+    | 'newest'
+    | 'oldest'
+    | 'age_asc'
+    | 'age_desc'
+    | 'condition_asc'
+    | 'condition_desc'
+    | 'status_asc'
+    | 'status_desc';
 }
 
 export const listPatients = catchAsync(async (req: Request, res: Response) => {
@@ -84,10 +94,15 @@ export const listPatients = catchAsync(async (req: Request, res: Response) => {
 
   let sortOption: Record<string, 1 | -1> = { createdAt: -1 };
   if (sort === 'oldest') sortOption = { createdAt: 1 };
+  if (sort === 'newest') sortOption = { createdAt: -1 };
   if (sort === 'name_asc') sortOption = { name: 1 };
   if (sort === 'name_desc') sortOption = { name: -1 };
   if (sort === 'age_asc') sortOption = { age: 1 };
   if (sort === 'age_desc') sortOption = { age: -1 };
+  if (sort === 'condition_asc') sortOption = { condition: 1 };
+  if (sort === 'condition_desc') sortOption = { condition: -1 };
+  if (sort === 'status_asc') sortOption = { status: 1 };
+  if (sort === 'status_desc') sortOption = { status: -1 };
 
   const [patients, total] = await Promise.all([
     Patient.find(filter)

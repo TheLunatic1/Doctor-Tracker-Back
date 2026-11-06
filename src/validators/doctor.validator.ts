@@ -45,7 +45,29 @@ export const doctorQuerySchema = {
     status: z.string().optional(),
     dateFrom: z.string().datetime().optional().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
     dateTo: z.string().datetime().optional().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
-    sort: z.enum(['name_asc', 'name_desc', 'newest', 'oldest', 'rating_desc']).optional().default('newest'),
+    sort: z
+      .enum([
+        'newest',
+        'oldest',
+        'name_asc',
+        'name_desc',
+        'specialization_asc',
+        'specialization_desc',
+        'hospital_asc',
+        'hospital_desc',
+        'phone_asc',
+        'phone_desc',
+        'email_asc',
+        'email_desc',
+        'patients_desc',
+        'patients_asc',
+        'status_asc',
+        'status_desc',
+        'rating_desc',
+        'rating_asc',
+      ])
+      .optional()
+      .default('newest'),
   }),
 };
 

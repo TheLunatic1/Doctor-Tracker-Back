@@ -61,7 +61,21 @@ export const patientQuerySchema = {
     status: z.enum(['Active', 'Discharged', 'Critical']).optional(),
     dateFrom: z.string().optional(),
     dateTo: z.string().optional(),
-    sort: z.enum(['name_asc', 'name_desc', 'newest', 'oldest', 'age_asc', 'age_desc']).optional().default('newest'),
+    sort: z
+      .enum([
+        'name_asc',
+        'name_desc',
+        'newest',
+        'oldest',
+        'age_asc',
+        'age_desc',
+        'condition_asc',
+        'condition_desc',
+        'status_asc',
+        'status_desc',
+      ])
+      .optional()
+      .default('newest'),
   }),
 };
 

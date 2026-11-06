@@ -16,7 +16,25 @@ interface DoctorQueryParams {
   status?: string;
   dateFrom?: string;
   dateTo?: string;
-  sort?: 'name_asc' | 'name_desc' | 'newest' | 'oldest' | 'rating_desc';
+  sort?:
+    | 'newest'
+    | 'oldest'
+    | 'name_asc'
+    | 'name_desc'
+    | 'specialization_asc'
+    | 'specialization_desc'
+    | 'hospital_asc'
+    | 'hospital_desc'
+    | 'phone_asc'
+    | 'phone_desc'
+    | 'email_asc'
+    | 'email_desc'
+    | 'patients_desc'
+    | 'patients_asc'
+    | 'status_asc'
+    | 'status_desc'
+    | 'rating_desc'
+    | 'rating_asc';
 }
 
 export const listDoctors = catchAsync(async (req: Request, res: Response) => {
@@ -73,12 +91,62 @@ export const listDoctors = catchAsync(async (req: Request, res: Response) => {
     }
   }
 
-  // Determine sort options
+  // Handle specialized sorting by patient count via aggregation pipeline
+  if (sort === 'patients_desc' || sort === 'patients_asc') {
+    const sortDir = sort === 'patients_desc' ? -1 : 1;
+    const [doctorsWithPatients, countResult] = await Promise.all([
+      Doctor.aggregate([
+        { $match: filter },
+        {
+          $lookup: {
+            from: 'patients',
+            localField: '_id',
+            foreignField: 'doctor',
+            as: 'patientDocs',
+          },
+        },
+        {
+          $addFields: {
+            patientCount: { $size: '$patientDocs' },
+          },
+        },
+        { $project: { patientDocs: 0 } },
+        { $sort: { patientCount: sortDir, createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limitNum },
+      ]),
+      Doctor.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(countResult / limitNum);
+    return sendSuccess(res, doctorsWithPatients, 200, {
+      page: pageNum,
+      limit: limitNum,
+      total: countResult,
+      totalPages,
+      hasNext: pageNum < totalPages,
+      hasPrev: pageNum > 1,
+    });
+  }
+
+  // Determine standard sort options
   let sortOption: Record<string, 1 | -1> = { createdAt: -1 };
   if (sort === 'oldest') sortOption = { createdAt: 1 };
+  if (sort === 'newest') sortOption = { createdAt: -1 };
   if (sort === 'name_asc') sortOption = { name: 1 };
   if (sort === 'name_desc') sortOption = { name: -1 };
+  if (sort === 'specialization_asc') sortOption = { specialization: 1 };
+  if (sort === 'specialization_desc') sortOption = { specialization: -1 };
+  if (sort === 'hospital_asc') sortOption = { hospital: 1 };
+  if (sort === 'hospital_desc') sortOption = { hospital: -1 };
+  if (sort === 'phone_asc') sortOption = { phone: 1 };
+  if (sort === 'phone_desc') sortOption = { phone: -1 };
+  if (sort === 'email_asc') sortOption = { email: 1 };
+  if (sort === 'email_desc') sortOption = { email: -1 };
+  if (sort === 'status_asc') sortOption = { status: 1 };
+  if (sort === 'status_desc') sortOption = { status: -1 };
   if (sort === 'rating_desc') sortOption = { rating: -1, createdAt: -1 };
+  if (sort === 'rating_asc') sortOption = { rating: 1, createdAt: 1 };
 
   // Parallel count + lean query for optimal performance
   const [doctors, total] = await Promise.all([
