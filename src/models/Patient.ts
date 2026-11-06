@@ -9,6 +9,7 @@ export interface IPatient extends Document {
   doctor: Types.ObjectId;
   status: 'Active' | 'Discharged' | 'Critical';
   medicalRecordNumber?: string;
+  avatar?: string;
   admittedAt: Date;
   notes?: string;
   createdAt: Date;
@@ -64,6 +65,11 @@ const patientSchema = new Schema<IPatient, IPatientModel>(
     medicalRecordNumber: {
       type: String,
       trim: true,
+    },
+    avatar: {
+      type: String,
+      trim: true,
+      default: '',
     },
     admittedAt: {
       type: Date,

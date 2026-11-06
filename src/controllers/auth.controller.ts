@@ -34,6 +34,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     name: user.name,
     email: user.email,
     role: user.role,
+    avatar: user.avatar,
     createdAt: user.createdAt,
   };
 
@@ -43,11 +44,17 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     });
     if (doc) {
       safeUser.doctorProfile = doc;
+      if (!safeUser.avatar && doc.avatar) {
+        safeUser.avatar = doc.avatar;
+      }
     }
   } else if (user.role === 'patient') {
     const pat = await Patient.findOne({ name: user.name }).populate('doctor');
     if (pat) {
       safeUser.patientProfile = pat;
+      if (!safeUser.avatar && (pat as unknown as { avatar?: string }).avatar) {
+        safeUser.avatar = (pat as unknown as { avatar?: string }).avatar;
+      }
     }
   }
 
@@ -79,6 +86,7 @@ export const getMe = catchAsync(async (req: Request, res: Response) => {
     name: req.user.name,
     email: req.user.email,
     role: req.user.role,
+    avatar: req.user.avatar,
     createdAt: req.user.createdAt,
   };
 
@@ -88,11 +96,17 @@ export const getMe = catchAsync(async (req: Request, res: Response) => {
     });
     if (doc) {
       safeUser.doctorProfile = doc;
+      if (!safeUser.avatar && doc.avatar) {
+        safeUser.avatar = doc.avatar;
+      }
     }
   } else if (req.user.role === 'patient') {
     const pat = await Patient.findOne({ name: req.user.name }).populate('doctor');
     if (pat) {
       safeUser.patientProfile = pat;
+      if (!safeUser.avatar && (pat as unknown as { avatar?: string }).avatar) {
+        safeUser.avatar = (pat as unknown as { avatar?: string }).avatar;
+      }
     }
   }
 
@@ -113,6 +127,7 @@ export const updateProfile = catchAsync(async (req: Request, res: Response) => {
   const {
     name,
     phone,
+    avatar,
     specialization,
     hospital,
     qualification,
@@ -127,6 +142,10 @@ export const updateProfile = catchAsync(async (req: Request, res: Response) => {
 
   if (name && typeof name === 'string' && name.trim()) {
     user.name = name.trim();
+  }
+
+  if (avatar !== undefined && typeof avatar === 'string') {
+    user.avatar = avatar.trim();
   }
 
   if (newPassword) {
@@ -156,6 +175,7 @@ export const updateProfile = catchAsync(async (req: Request, res: Response) => {
     if (doc) {
       if (name && typeof name === 'string' && name.trim()) doc.name = user.name;
       if (phone && typeof phone === 'string') doc.phone = phone.trim();
+      if (avatar !== undefined && typeof avatar === 'string') doc.avatar = avatar.trim();
       if (specialization && typeof specialization === 'string') doc.specialization = specialization;
       if (hospital && typeof hospital === 'string') doc.hospital = hospital;
       if (qualification && typeof qualification === 'string') doc.qualification = qualification;
@@ -173,6 +193,9 @@ export const updateProfile = catchAsync(async (req: Request, res: Response) => {
     if (pat) {
       if (name && typeof name === 'string' && name.trim()) pat.name = user.name;
       if (phone && typeof phone === 'string') pat.phone = phone.trim();
+      if (avatar !== undefined && typeof avatar === 'string') {
+        (pat as unknown as { avatar?: string }).avatar = avatar.trim();
+      }
       if (notes !== undefined && typeof notes === 'string') pat.notes = notes;
       await pat.save();
       patientProfile = pat;
@@ -184,6 +207,7 @@ export const updateProfile = catchAsync(async (req: Request, res: Response) => {
     name: user.name,
     email: user.email,
     role: user.role,
+    avatar: user.avatar,
     createdAt: user.createdAt,
     doctorProfile,
     patientProfile,
