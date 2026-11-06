@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as patientController from '../controllers/patient.controller.js';
-import { authenticate } from '../middlewares/auth.middleware.js';
+import { authenticate, authorize } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validate.js';
 import {
   createPatientSchema,
@@ -17,12 +17,12 @@ router.use(authenticate);
 router
   .route('/')
   .get(validate(patientQuerySchema), patientController.listPatients)
-  .post(validate(createPatientSchema), patientController.createPatient);
+  .post(authorize('admin', 'doctor', 'staff'), validate(createPatientSchema), patientController.createPatient);
 
 router
   .route('/:id')
   .get(validate(patientParamsSchema), patientController.getPatient)
-  .put(validate(updatePatientSchema), patientController.updatePatient)
-  .delete(validate(patientParamsSchema), patientController.deletePatient);
+  .put(authorize('admin', 'doctor', 'staff'), validate(updatePatientSchema), patientController.updatePatient)
+  .delete(authorize('admin'), validate(patientParamsSchema), patientController.deletePatient);
 
 export default router;

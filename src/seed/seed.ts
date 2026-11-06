@@ -157,6 +157,43 @@ export async function runSeed(customUri?: string): Promise<{
     if (updatedCount > 0) {
       console.info(`Updated avatars for ${updatedCount} existing doctors with local images.`);
     }
+    // Ensure Dr. S. M. Toha doctor record exists
+    let tohaDoc = await Doctor.findOne({ name: 'Dr. S. M. Toha' });
+    if (!tohaDoc) {
+      tohaDoc = await Doctor.create({
+        name: 'Dr. S. M. Toha',
+        specialization: 'Cardiology',
+        hospital: 'Apollo Hospital',
+        phone: '+880 1711 998877',
+        email: 'toha.cardio@apollo.com',
+        qualification: 'MBBS, MD',
+        yearsExperience: 15,
+        rating: 4.9,
+        bio: 'Senior Clinical Cardiologist specializing in interventional cardiology and cardiovascular wellness.',
+        avatar: '/images/doctors/doctor-1.jpg',
+        status: 'Active',
+      });
+      console.info('Created Dr. S. M. Toha doctor record');
+    }
+
+    // Ensure Kazi Nazrul Islam patient record exists
+    let nazrulPatient = await Patient.findOne({ name: 'Kazi Nazrul Islam' });
+    if (!nazrulPatient) {
+      nazrulPatient = await Patient.create({
+        name: 'Kazi Nazrul Islam',
+        age: 46,
+        gender: 'Male',
+        phone: '+880 1712 345678',
+        condition: 'Hypertension',
+        doctor: tohaDoc._id,
+        status: 'Active',
+        medicalRecordNumber: 'KNI0001',
+        admittedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+        notes: 'Under observation for blood pressure stabilization. Dietary lifestyle consultation completed.',
+      });
+      console.info('Created Kazi Nazrul Islam patient record');
+    }
+
     const patientCount = await Patient.countDocuments();
     console.info(`Database already seeded with ${existingDoctorCount} doctors and ${patientCount} patients.`);
     return { admin, doctorCount: existingDoctorCount, patientCount };

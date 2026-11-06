@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as doctorController from '../controllers/doctor.controller.js';
-import { authenticate } from '../middlewares/auth.middleware.js';
+import { authenticate, authorize } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validate.js';
 import {
   createDoctorSchema,
@@ -22,23 +22,23 @@ router.use(authenticate);
 router
   .route('/')
   .get(validate(doctorQuerySchema), doctorController.listDoctors)
-  .post(validate(createDoctorSchema), doctorController.createDoctor);
+  .post(authorize('admin'), validate(createDoctorSchema), doctorController.createDoctor);
 
 router
   .route('/:id')
   .get(validate(doctorParamsSchema), doctorController.getDoctor)
-  .put(validate(updateDoctorSchema), doctorController.updateDoctor)
-  .patch(validate(updateDoctorSchema), doctorController.updateDoctor)
-  .delete(validate(doctorParamsSchema), doctorController.deleteDoctor);
+  .put(authorize('admin', 'doctor'), validate(updateDoctorSchema), doctorController.updateDoctor)
+  .patch(authorize('admin', 'doctor'), validate(updateDoctorSchema), doctorController.updateDoctor)
+  .delete(authorize('admin'), validate(doctorParamsSchema), doctorController.deleteDoctor);
 
 // Nested Doctor Patients routes
 router
   .route('/:id/patients')
   .get(validate(doctorParamsSchema), doctorController.getDoctorPatients)
-  .post(validate(createNestedPatientSchema), doctorController.addDoctorPatient);
+  .post(authorize('admin', 'doctor', 'staff'), validate(createNestedPatientSchema), doctorController.addDoctorPatient);
 
 router
   .route('/:id/patients/:patientId')
-  .delete(validate(nestedPatientParamsSchema), doctorController.deleteDoctorPatient);
+  .delete(authorize('admin', 'doctor'), validate(nestedPatientParamsSchema), doctorController.deleteDoctorPatient);
 
 export default router;

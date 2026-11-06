@@ -4,7 +4,7 @@ import { Patient, IPatient } from '../models/Patient.js';
 import { Doctor } from '../models/Doctor.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { sendSuccess } from '../utils/response.js';
-import { NotFoundError, BadRequestError } from '../utils/AppError.js';
+import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/AppError.js';
 import { escapeRegex } from '../utils/sanitize.js';
 
 interface PatientQueryParams {
@@ -50,6 +50,11 @@ export const listPatients = catchAsync(async (req: Request, res: Response) => {
   const skip = (pageNum - 1) * limitNum;
 
   const filter: FilterQuery<IPatient> = {};
+
+  // Patient role isolation: Patients can only retrieve their own record
+  if (req.user && req.user.role === 'patient') {
+    filter.name = { $regex: new RegExp(`^${escapeRegex(req.user.name)}$`, 'i') };
+  }
 
   if (search && search.trim()) {
     const escaped = escapeRegex(search.trim());
@@ -134,6 +139,11 @@ export const getPatient = catchAsync(async (req: Request, res: Response) => {
 
   if (!patient) {
     throw new NotFoundError(`Patient with ID ${id} was not found.`);
+  }
+
+  // Patients can only view their own record
+  if (req.user && req.user.role === 'patient' && patient.name.toLowerCase() !== req.user.name.toLowerCase()) {
+    throw new ForbiddenError('You can only access your own patient medical record.');
   }
 
   return sendSuccess(res, patient, 200);

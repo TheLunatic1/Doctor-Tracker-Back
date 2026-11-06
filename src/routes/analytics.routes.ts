@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import * as analyticsController from '../controllers/analytics.controller.js';
-import { authenticate } from '../middlewares/auth.middleware.js';
+import { authenticate, authorize } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
-// Protect all analytics endpoints
-router.use(authenticate);
+// Protect all analytics endpoints (clinical operations & management)
+router.use(authenticate, authorize('admin', 'doctor', 'staff'));
 
 router.get('/overview', analyticsController.getOverview);
 router.get('/patients-per-doctor', analyticsController.getPatientsPerDoctor);
