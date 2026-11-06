@@ -77,23 +77,65 @@ export async function runSeed(customUri?: string): Promise<{
 
   console.info('--- Starting Idempotent Database Seed ---');
 
-  // 1. Seed or update Admin User
-  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@doctortracker.com').toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD || 'Admin123456!';
-  const adminName = process.env.ADMIN_NAME || 'Admin User';
-
-  let admin = await User.findOne({ email: adminEmail });
-  if (!admin) {
-    const passwordHash = await User.hashPassword(adminPassword);
-    admin = await User.create({
-      name: adminName,
-      email: adminEmail,
-      passwordHash,
+  // 1. Seed or update Users for all roles (Admin, Doctor, Staff, Patient)
+  const USERS_TO_SEED: {
+    name: string;
+    email: string;
+    password: string;
+    role: 'admin' | 'doctor' | 'staff' | 'patient';
+  }[] = [
+    {
+      name: process.env.ADMIN_NAME || 'Admin User',
+      email: (process.env.ADMIN_EMAIL || 'admin@doctortracker.com').toLowerCase(),
+      password: process.env.ADMIN_PASSWORD || 'Admin123456!',
       role: 'admin',
-    });
-    console.info(`Admin user created: ${adminEmail}`);
-  } else {
-    console.info(`Admin user already exists: ${adminEmail}`);
+    },
+    {
+      name: 'Dr. S. M. Toha',
+      email: 'doctor@doctortracker.com',
+      password: 'Doctor123456!',
+      role: 'doctor',
+    },
+    {
+      name: 'Clinical Staff Coordinator',
+      email: 'staff@doctortracker.com',
+      password: 'Staff123456!',
+      role: 'staff',
+    },
+    {
+      name: 'Kazi Nazrul Islam',
+      email: 'patient@doctortracker.com',
+      password: 'Patient123456!',
+      role: 'patient',
+    },
+  ];
+
+  let admin: IUser | null = null;
+  for (const userDef of USERS_TO_SEED) {
+    let u = await User.findOne({ email: userDef.email });
+    const passwordHash = await User.hashPassword(userDef.password);
+    if (!u) {
+      u = await User.create({
+        name: userDef.name,
+        email: userDef.email,
+        passwordHash,
+        role: userDef.role,
+      });
+      console.info(`User created [${userDef.role}]: ${userDef.email}`);
+    } else {
+      u.name = userDef.name;
+      u.role = userDef.role;
+      u.passwordHash = passwordHash;
+      await u.save();
+      console.info(`User verified [${userDef.role}]: ${userDef.email}`);
+    }
+    if (userDef.role === 'admin') {
+      admin = u;
+    }
+  }
+
+  if (!admin) {
+    throw new Error('Failed to initialize admin user');
   }
 
   // 2. Check existing doctors and patients
