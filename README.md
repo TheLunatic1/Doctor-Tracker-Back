@@ -14,7 +14,13 @@ The Doctor Tracker Backend provides robust healthcare data services:
 
 ---
 
-## 🏗️ Domain Models & Schemas
+## 🌐 Live API Deployment
+
+- **Base URL:** [https://toha.tail2c2947.ts.net:10000](https://toha.tail2c2947.ts.net:10000)
+- **Health Check:** [https://toha.tail2c2947.ts.net:10000/health](https://toha.tail2c2947.ts.net:10000/health)
+- **API Prefix:** `/api/v1`
+
+---
 
 ### 1. User (`src/models/User.ts`)
 | Field | Type | Attributes | Description |
